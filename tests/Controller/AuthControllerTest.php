@@ -5,14 +5,16 @@ use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
 use Doctrine\ORM\EntityManagerInterface;
 use App\Entity\User;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
+use Zenstruck\Foundry\Test\ResetDatabase;
 
 class AuthControllerTest extends WebTestCase
 {
+    use ResetDatabase;
+
     private function createTestUser(string $email, string $plainPassword, $container): void
     {
         $em = $container->get(EntityManagerInterface::class);
         $hasher = $container->get(UserPasswordHasherInterface::class);
-        $em->createQuery('DELETE FROM App\\Entity\\User')->execute();
         $user = new User();
         $user->setEmail($email);
         $user->setRoles(['ROLE_USER']);

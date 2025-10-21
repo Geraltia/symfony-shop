@@ -2,16 +2,16 @@
 namespace App\Tests\Controller;
 
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
-use Doctrine\ORM\EntityManagerInterface;
-use App\Entity\User;
+use Zenstruck\Foundry\Test\ResetDatabase;
+use App\Factory\UserFactory;
 
 class RegistrationControllerTest extends WebTestCase
 {
+    use ResetDatabase;
+
     public function testSuccessfulRegistration(): void
     {
         $client = static::createClient();
-        $em = static::getContainer()->get(EntityManagerInterface::class);
-        $em->createQuery('DELETE FROM App\\Entity\\User')->execute();
         $client->request('POST', '/register', [], [], ['CONTENT_TYPE' => 'application/json'], json_encode([
             'email' => 'test@example.com',
             'password' => 'password123'
@@ -25,19 +25,19 @@ class RegistrationControllerTest extends WebTestCase
     public function testRegistrationWithExistingEmail(): void
     {
         $client = static::createClient();
-        $em = static::getContainer()->get(EntityManagerInterface::class);
-        $em->createQuery('DELETE FROM App\\Entity\\User')->execute();
-        // Первый запрос - успешная регистрация
+
+        // СОЗДАЕМ пользователя через Factory перед тестом
+        UserFactory::createOne([
+            'email' => 'test2@example.com',
+            'password' => 'password123'
+        ]);
+
+        // Пытаемся зарегистрировать с тем же email
         $client->request('POST', '/register', [], [], ['CONTENT_TYPE' => 'application/json'], json_encode([
             'email' => 'test2@example.com',
             'password' => 'password123'
         ]));
-        $this->assertResponseStatusCodeSame(201);
-        // Второй запрос - email уже существует
-        $client->request('POST', '/register', [], [], ['CONTENT_TYPE' => 'application/json'], json_encode([
-            'email' => 'test2@example.com',
-            'password' => 'password123'
-        ]));
+
         $this->assertResponseStatusCodeSame(409);
         $this->assertStringContainsString('Email already exists', $client->getResponse()->getContent());
     }
@@ -45,8 +45,6 @@ class RegistrationControllerTest extends WebTestCase
     public function testRegistrationWithMissingFields(): void
     {
         $client = static::createClient();
-        $em = static::getContainer()->get(EntityManagerInterface::class);
-        $em->createQuery('DELETE FROM App\\Entity\\User')->execute();
         $client->request('POST', '/register', [], [], ['CONTENT_TYPE' => 'application/json'], json_encode([
             'email' => '',
             'password' => ''
@@ -58,8 +56,6 @@ class RegistrationControllerTest extends WebTestCase
     public function testRegistrationWithInvalidEmail(): void
     {
         $client = static::createClient();
-        $em = static::getContainer()->get(EntityManagerInterface::class);
-        $em->createQuery('DELETE FROM App\\Entity\\User')->execute();
         $client->request('POST', '/register', [], [], ['CONTENT_TYPE' => 'application/json'], json_encode([
             'email' => 'invalid-email',
             'password' => 'password123'
@@ -71,8 +67,6 @@ class RegistrationControllerTest extends WebTestCase
     public function testRegistrationWithShortPassword(): void
     {
         $client = static::createClient();
-        $em = static::getContainer()->get(EntityManagerInterface::class);
-        $em->createQuery('DELETE FROM App\\Entity\\User')->execute();
         $client->request('POST', '/register', [], [], ['CONTENT_TYPE' => 'application/json'], json_encode([
             'email' => 'shortpass@example.com',
             'password' => '123'
@@ -80,6 +74,4 @@ class RegistrationControllerTest extends WebTestCase
         $this->assertResponseStatusCodeSame(400);
         $this->assertStringContainsString('Password too short', $client->getResponse()->getContent());
     }
-
-
 }
