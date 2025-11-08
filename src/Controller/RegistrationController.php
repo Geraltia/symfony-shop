@@ -13,7 +13,7 @@ use Symfony\Component\HttpKernel\Attribute\MapRequestPayload;
 
 class RegistrationController extends AbstractController
 {
-    #[Route('/register', name: 'user_register', methods: ['POST'])]
+    #[Route('/register', name: 'user_register', methods: ['POST'],format: 'json')]
     public function register(
         #[MapRequestPayload] CreateUserDto $userDto,
         EntityManagerInterface $em,

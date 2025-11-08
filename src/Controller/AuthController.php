@@ -13,7 +13,7 @@ use Symfony\Component\HttpKernel\Attribute\MapRequestPayload;
 
 class AuthController extends AbstractController
 {
-    #[Route('/login', name: 'user_login', methods: ['POST'])]
+    #[Route('/login', name: 'user_login', methods: ['POST'],format: 'json')]
     public function login(
         #[MapRequestPayload] LoginRequestDto $dto,
         EntityManagerInterface $em,

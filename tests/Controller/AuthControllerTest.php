@@ -62,11 +62,13 @@ class AuthControllerTest extends WebTestCase
     public function testLoginWithMissingFields(): void
     {
         $client = static::createClient();
-        $client->request('POST', '/login', [], [], ['CONTENT_TYPE' => 'application/json'], json_encode([
+        $client->request('POST', '/login', [], [], ['CONTENT_TYPE' => 'application/json', 'ACCEPT' => 'application/json'], json_encode([
             'email' => '',
             'password' => ''
         ]));
-        $this->assertResponseStatusCodeSame(400);
-        $this->assertStringContainsString('Email and password required', $client->getResponse()->getContent());
+
+        $this->assertResponseStatusCodeSame(422);
+        $this->assertStringContainsString('Password is required', $client->getResponse()->getContent());
+        $this->assertStringContainsString('Email is required', $client->getResponse()->getContent());
     }
 }
